@@ -1,6 +1,6 @@
 {
   "name": "special-rule-engine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "main": "./dist/index.cjs",
@@ -21,10 +21,15 @@
     "prepare": "npm run build"
   },
   "files": [
-    "dist"
+    "dist",
+    "wasm",
+    "LICENSES"
   ],
   "devDependencies": {
     "typescript": "^5.5.4",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "web-tree-sitter": "0.26.11"
   }
 }
