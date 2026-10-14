@@ -246,7 +246,7 @@ function walkStatements(container: Node, loopDepth: number, state: State, scopeC
 }
 
 async function detectFeatures(sourceText: string): Promise<FeatureAnalysis> {
-    if (!sourceText.trim()) return { features: new Set() };
+    if (typeof sourceText !== "string" || !sourceText.trim()) return { features: new Set() };
 
     const language = await getPythonLanguage();
     const parser = new Parser();
