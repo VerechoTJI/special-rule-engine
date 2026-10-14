@@ -1,5 +1,5 @@
 import { Language, Parser, type Node } from "web-tree-sitter";
-import type { PythonFeature } from "../types.js";
+import type { PythonFeature } from "./types.js";
 
 type FeatureAnalysis = { features: Set<PythonFeature>; error?: string };
 type State = {

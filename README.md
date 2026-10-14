@@ -51,6 +51,22 @@ Supported features: `IF`, `FOR`, `WHILE`, `FUNCTION`, `NESTED_LOOP`, `RECURSION`
 
 The Python grammar WASM is bundled at `wasm/tree-sitter-python.wasm` (Tree-sitter Python v0.25.0, parser ABI 15). Its license is included in `LICENSES/tree-sitter-python.txt`.
 
+### Adding an async language rule handler
+
+Language-specific analysis lives in a handler instead of the rule evaluator. A handler can prepare shared analysis once for all rules of its type, including rules nested inside composites, then match each rule against that result. Extend the defaults with an immutable registry:
+
+```ts
+const ruleHandlers = defaultRuleHandlerRegistry.with({
+  type: "myLanguageFeature",
+  prepare: (rules, context) => analyzeMyLanguage(context.sourceText, rules),
+  match: (rule, _input, analysis) => matchMyLanguageRule(rule, analysis),
+});
+
+const results = await evaluateRulesAsync(rules, context, { ruleHandlers });
+```
+
+`defaultRuleHandlerRegistry` already includes the Python feature handler. The engine handles handler lookup, one-time preparation, composite traversal, and fail-closed results; new analyzers implement only their own `prepare` and `match` behavior.
+
 ## Development
 
 - Install dependencies: `npm install`

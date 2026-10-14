@@ -1,21 +1,7 @@
 export type RuleConstraint = "MUST_HAVE" | "MUST_NOT_HAVE";
 
 // NOTE: `includes` is legacy. Prefer `use`.
-export type SpecialRuleType = "regex" | "use" | "nestedLoop" | "composite" | "pythonFeature";
-
-export type PythonFeature =
-    | "IF"
-    | "FOR"
-    | "WHILE"
-    | "FUNCTION"
-    | "NESTED_LOOP"
-    | "RECURSION"
-    | "LAMBDA"
-    | "LIST"
-    | "DICT"
-    | "SET"
-    | "SORT"
-    | "SORTED";
+export type SpecialRuleType = "regex" | "use" | "nestedLoop" | "composite" | "pythonFeature" | (string & {});
 
 export type SpecialRuleSeverity = "info" | "warn";
 
@@ -51,4 +37,15 @@ export interface SourceNormalizer {
 export interface RuleMatcher<Params = unknown> {
     readonly type: SpecialRuleType;
     match(params: Params, input: { language: string; text: string }): MatchResult;
+}
+
+/** Async extension point for rule types that need shared analysis before matching. */
+export interface AsyncRuleHandler<Prepared = unknown> {
+    readonly type: string;
+    prepare?(rules: readonly SpecialRule[], context: RuleEvalContext): Prepared | Promise<Prepared>;
+    match(
+        rule: SpecialRule,
+        input: { language: string; text: string },
+        prepared: Prepared,
+    ): MatchResult | Promise<MatchResult>;
 }
