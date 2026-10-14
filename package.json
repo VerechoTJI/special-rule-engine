@@ -21,10 +21,15 @@
     "prepare": "npm run build"
   },
   "files": [
-    "dist"
+    "dist",
+    "wasm",
+    "LICENSES"
   ],
   "devDependencies": {
     "typescript": "^5.5.4",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "web-tree-sitter": "0.26.11"
   }
 }

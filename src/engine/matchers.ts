@@ -21,7 +21,7 @@ export const useMatcher: RuleMatcher<UseParams> = {
     match(params, input): MatchResult {
         const normalized = normalizeUseParams(params);
         if (!normalized || typeof normalized.target !== "string") {
-            return { matched: false, reason: "use: params.target must be a string" };
+            return { matched: false, reason: "use: params.target must be a string", error: true };
         }
 
         const haystack = normalized.caseSensitive ? input.text : input.text.toLowerCase();
@@ -39,7 +39,7 @@ export const nestedLoopMatcher: RuleMatcher = {
     match: function (_params: any, input: { language: string; text: string } | any): MatchResult {
         // Ensure we use the second argument as input (other matchers accept params,input)
         if (!input || typeof input.text !== "string") {
-            return { matched: false, reason: "nestedLoop: missing input.text" };
+            return { matched: false, reason: "nestedLoop: missing input.text", error: true };
         }
 
         const src = normalizeNewlines(String(input.text));
@@ -137,7 +137,7 @@ export const regexMatcher: RuleMatcher<RegexParams> = {
     type: "regex",
     match(params, input): MatchResult {
         if (!params || typeof params.pattern !== "string") {
-            return { matched: false, reason: "regex: params.pattern must be a string" };
+            return { matched: false, reason: "regex: params.pattern must be a string", error: true };
         }
 
         try {
@@ -145,14 +145,14 @@ export const regexMatcher: RuleMatcher<RegexParams> = {
             const matched = re.test(input.text);
             return { matched, reason: matched ? `regex: matched /${params.pattern}/` : `regex: not matched` };
         } catch (e: any) {
-            return { matched: false, reason: `regex: invalid regex (${String(e?.message ?? e)})` };
+            return { matched: false, reason: `regex: invalid regex (${String(e?.message ?? e)})`, error: true };
         }
     },
 };
 
 function matchChildRule(child: SpecialRule, input: { language: string; text: string }): MatchResult {
     if (!child || typeof child.type !== "string") {
-        return { matched: false, reason: "composite: child rule missing type" };
+        return { matched: false, reason: "composite: child rule missing type", error: true };
     }
 
     // IMPORTANT: composite matching is purely about whether the child rule matcher matches.
@@ -169,14 +169,14 @@ function matchChildRule(child: SpecialRule, input: { language: string; text: str
         return regexMatcher.match(child.params as RegexParams, input);
     }
 
-    return { matched: false, reason: `composite: unknown child type '${child.type}'` };
+    return { matched: false, reason: `composite: unknown child type '${child.type}'`, error: true };
 }
 
 export const compositeMatcher: RuleMatcher<CompositeParams> = {
     type: "composite",
     match(params, input): MatchResult {
         if (!params || (params.op !== "AND" && params.op !== "OR") || !Array.isArray(params.rules)) {
-            return { matched: false, reason: "composite: params must be { op: AND|OR, rules: SpecialRule[] }" };
+            return { matched: false, reason: "composite: params must be { op: AND|OR, rules: SpecialRule[] }", error: true };
         }
 
         const childMatches = params.rules.map((r) => matchChildRule(r, input));
@@ -188,6 +188,7 @@ export const compositeMatcher: RuleMatcher<CompositeParams> = {
         return {
             matched,
             reason: `composite(${params.op}): ${childMatches.map((r) => (r.matched ? "T" : "F")).join(",")}`,
+            error: childMatches.some((result) => result.error),
         };
     },
 };

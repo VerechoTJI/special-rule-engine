@@ -5,7 +5,7 @@ A small, pure-TypeScript rule evaluation engine for NTUT Exam System.
 ## Goals
 
 - Works in Node.js, Vite (web), and Electron.
-- No AST yet (v1).
+- Python feature rules use the bundled Tree-sitter Python WASM grammar.
 - Rules come from exam config (`globalSpecialRules` + per-puzzle `specialRules`).
 
 ## install metho (npm command):
@@ -28,6 +28,28 @@ if you are using pnpm you should add the following script in your package
 - `includes`
 - `regex`
 - `composite` (`AND` / `OR`)
+- `pythonFeature` (asynchronous Python syntax analysis)
+
+### Python feature rules
+
+Python AST rules are asynchronous because the Tree-sitter WebAssembly runtime and grammar load asynchronously. Existing synchronous `evaluateRule` and `evaluateRules` remain available for the other rule types. Use `evaluateRulesAsync` when a rule list can contain `pythonFeature` rules:
+
+```ts
+const results = await evaluateRulesAsync(
+  [{
+    id: "require-loop",
+    type: "pythonFeature",
+    constraint: "MUST_HAVE",
+    message: "Use a loop",
+    params: { features: ["FOR"] },
+  }],
+  { language: "Python", sourceText: "for item in items:\n    print(item)" },
+);
+```
+
+Supported features: `IF`, `FOR`, `WHILE`, `FUNCTION`, `NESTED_LOOP`, `RECURSION`, `LAMBDA`, `LIST`, `DICT`, `SET`, `SORT`, and `SORTED`. Every feature in `params.features` must be found for a match. Syntax or rule errors fail the rule, including under `MUST_NOT_HAVE`.
+
+The Python grammar WASM is bundled at `wasm/tree-sitter-python.wasm` (Tree-sitter Python v0.25.0, parser ABI 15). Its license is included in `LICENSES/tree-sitter-python.txt`.
 
 ## Development
 

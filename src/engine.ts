@@ -1,1 +1,1 @@
-export { evaluateRule, evaluateRules } from "./engine/engine.js";
+export { evaluateRule, evaluateRules, evaluateRulesAsync } from "./engine/engine.js";

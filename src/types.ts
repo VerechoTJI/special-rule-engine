@@ -1,7 +1,21 @@
 export type RuleConstraint = "MUST_HAVE" | "MUST_NOT_HAVE";
 
 // NOTE: `includes` is legacy. Prefer `use`.
-export type SpecialRuleType = "regex" | "use" | "nestedLoop" | "composite";
+export type SpecialRuleType = "regex" | "use" | "nestedLoop" | "composite" | "pythonFeature";
+
+export type PythonFeature =
+    | "IF"
+    | "FOR"
+    | "WHILE"
+    | "FUNCTION"
+    | "NESTED_LOOP"
+    | "RECURSION"
+    | "LAMBDA"
+    | "LIST"
+    | "DICT"
+    | "SET"
+    | "SORT"
+    | "SORTED";
 
 export type SpecialRuleSeverity = "info" | "warn";
 
@@ -26,7 +40,7 @@ export type RuleEvalResult = {
     reason?: string;
 };
 
-export type MatchResult = { matched: boolean; reason?: string };
+export type MatchResult = { matched: boolean; reason?: string; error?: boolean };
 
 export interface SourceNormalizer {
     normalize(input: { language: string; sourceText: string }): {
