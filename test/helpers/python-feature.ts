@@ -1,4 +1,4 @@
-import { evaluateRulesAsync, type PythonFeature, type RuleEvalResult, type SpecialRule } from "../../src/index.js";
+import { evaluateRules, type PythonFeature, type RuleEvalResult, type SpecialRule } from "../../src/index.js";
 
 export function makePythonRule(
     features: PythonFeature[],
@@ -14,12 +14,12 @@ export function makePythonRule(
 }
 
 export async function matchesPythonFeatures(features: PythonFeature[], sourceText: string): Promise<boolean> {
-    const [result] = await evaluateRulesAsync([makePythonRule(features)], { language: "Python", sourceText });
+    const [result] = await evaluateRules([makePythonRule(features)], { language: "Python", sourceText });
     return result!.passed;
 }
 
 export async function evaluatePythonFeatures(features: PythonFeature[], sourceText: string): Promise<RuleEvalResult[]> {
-    return evaluateRulesAsync([makePythonRule(features)], { language: "Python", sourceText });
+    return evaluateRules([makePythonRule(features)], { language: "Python", sourceText });
 }
 
 export async function evaluatePythonFeatureDetails(features: PythonFeature[], sourceText: string): Promise<Array<{ feature: PythonFeature; result: RuleEvalResult }>> {
@@ -28,7 +28,7 @@ export async function evaluatePythonFeatureDetails(features: PythonFeature[], so
         ...makePythonRule([feature]),
         id: `python-feature-${index}`,
     }));
-    const results = await evaluateRulesAsync(rules, { language: "Python", sourceText });
+    const results = await evaluateRules(rules, { language: "Python", sourceText });
     return requested.map((feature, index) => ({ feature, result: results[index]! }));
 }
 

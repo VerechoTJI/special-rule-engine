@@ -32,10 +32,10 @@ if you are using pnpm you should add the following script in your package
 
 ### Python feature rules
 
-Python AST rules are asynchronous because the Tree-sitter WebAssembly runtime and grammar load asynchronously. Existing synchronous `evaluateRule` and `evaluateRules` remain available for the other rule types. Use `evaluateRulesAsync` when a rule list can contain `pythonFeature` rules:
+`evaluateRule` and `evaluateRules` are asynchronous so every rule type uses one evaluation path. Python AST analysis loads the Tree-sitter WebAssembly runtime and grammar asynchronously; other rule types use the same API:
 
 ```ts
-const results = await evaluateRulesAsync(
+const results = await evaluateRules(
   [{
     id: "require-loop",
     type: "pythonFeature",
@@ -62,7 +62,7 @@ const ruleHandlers = defaultRuleHandlerRegistry.with({
   match: (rule, _input, analysis) => matchMyLanguageRule(rule, analysis),
 });
 
-const results = await evaluateRulesAsync(rules, context, { ruleHandlers });
+const results = await evaluateRules(rules, context, { ruleHandlers });
 ```
 
 `defaultRuleHandlerRegistry` already includes the Python feature handler. The engine handles handler lookup, one-time preparation, composite traversal, and fail-closed results; new analyzers implement only their own `prepare` and `match` behavior.

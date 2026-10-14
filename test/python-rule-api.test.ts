@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { analyzePythonFeatures } from "../src/python/analyzer.js";
 import type { PythonFeature, SpecialRule } from "../src/index.js";
 import { evaluatePythonFeatureDetails, evaluatePythonFeatures, malformedPythonRule, matchesPythonFeatures } from "./helpers/python-feature.js";
-import { evaluateRulesAsync } from "../src/index.js";
+import { evaluateRules } from "../src/index.js";
 
 const forAndIf = "for i in range(10):\n    if i % 2 == 0:\n        print(i)";
 const referenceSamples = [
@@ -95,9 +95,9 @@ describe("Python rule API: check semantics", () => {
             message: "",
             params: { features: ["FOR"] },
         } as const;
-        const [result] = await evaluateRulesAsync([mustNotHave], { language: "Python", sourceText: "for item in items:\n    pass" });
+        const [result] = await evaluateRules([mustNotHave], { language: "Python", sourceText: "for item in items:\n    pass" });
         const invalid = { ...mustNotHave, params: { features: ["NOPE"] } } as unknown as SpecialRule;
-        const [invalidResult] = await evaluateRulesAsync([invalid], { language: "Python", sourceText: "pass" });
+        const [invalidResult] = await evaluateRules([invalid], { language: "Python", sourceText: "pass" });
         expect(result?.passed).toBe(false);
         expect(invalidResult?.passed).toBe(false);
     });
@@ -156,8 +156,7 @@ describe("Python rule API: reference checkDetail equivalents", () => {
     );
 
     it("fails closed for malformed Python rule configuration", async () => {
-        const [result] = await import("../src/index.js").then(({ evaluateRulesAsync }) =>
-            evaluateRulesAsync([malformedPythonRule([])], { language: "Python", sourceText: "pass" }));
+        const [result] = await evaluateRules([malformedPythonRule([])], { language: "Python", sourceText: "pass" });
         expect(result?.passed).toBe(false);
     });
 });

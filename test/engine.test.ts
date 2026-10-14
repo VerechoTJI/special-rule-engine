@@ -3,7 +3,7 @@ import type { SpecialRule } from "../src/types";
 import { evaluateRules } from "../src/engine";
 
 describe("rule engine (v1)", () => {
-    it("MUST_HAVE use passes when target exists", () => {
+    it("MUST_HAVE use passes when target exists", async () => {
         const rules: SpecialRule[] = [
             {
                 id: "r1",
@@ -14,7 +14,7 @@ describe("rule engine (v1)", () => {
             },
         ];
 
-        const results = evaluateRules(rules, {
+        const results = await evaluateRules(rules, {
             language: "c",
             sourceText: "int main(){ printf(\"hi\"); }",
         });
@@ -22,7 +22,7 @@ describe("rule engine (v1)", () => {
         expect(results[0]?.passed).toBe(true);
     });
 
-    it("MUST_NOT_HAVE regex passes when pattern does not match", () => {
+    it("MUST_NOT_HAVE regex passes when pattern does not match", async () => {
         const rules: SpecialRule[] = [
             {
                 id: "r1",
@@ -33,7 +33,7 @@ describe("rule engine (v1)", () => {
             },
         ];
 
-        const results = evaluateRules(rules, {
+        const results = await evaluateRules(rules, {
             language: "c",
             sourceText: "while(1){}",
         });
@@ -41,7 +41,7 @@ describe("rule engine (v1)", () => {
         expect(results[0]?.passed).toBe(true);
     });
 
-    it("composite AND obeys child matching (as a matcher)", () => {
+    it("composite AND obeys child matching (as a matcher)", async () => {
         const rules: SpecialRule[] = [
             {
                 id: "r-and",
@@ -70,7 +70,7 @@ describe("rule engine (v1)", () => {
             },
         ];
 
-        const results = evaluateRules(rules, {
+        const results = await evaluateRules(rules, {
             language: "javascript",
             sourceText: "// aaa\nconst x = 'aaa bbb';",
         });
@@ -78,7 +78,7 @@ describe("rule engine (v1)", () => {
         expect(results[0]?.passed).toBe(true);
     });
 
-    it("composite OR passes when at least one child matches", () => {
+    it("composite OR passes when at least one child matches", async () => {
         const rules: SpecialRule[] = [
             {
                 id: "r-or",
@@ -107,7 +107,7 @@ describe("rule engine (v1)", () => {
             },
         ];
 
-        const results = evaluateRules(rules, {
+        const results = await evaluateRules(rules, {
             language: "javascript",
             sourceText: "const x = 'bbb';",
         });
@@ -115,7 +115,7 @@ describe("rule engine (v1)", () => {
         expect(results[0]?.passed).toBe(true);
     });
 
-    it("MUST_NOT_HAVE use fails when target exists", () => {
+    it("MUST_NOT_HAVE use fails when target exists", async () => {
         const rules: SpecialRule[] = [
             {
                 id: "r-no",
@@ -126,7 +126,7 @@ describe("rule engine (v1)", () => {
             },
         ];
 
-        const results = evaluateRules(rules, {
+        const results = await evaluateRules(rules, {
             language: "javascript",
             sourceText: "eval('1+1');",
         });
@@ -134,7 +134,7 @@ describe("rule engine (v1)", () => {
         expect(results[0]?.passed).toBe(false);
     });
 
-    it("invalid regex reports failure reason and obeys constraint", () => {
+    it("invalid regex reports failure reason and obeys constraint", async () => {
         const rules: SpecialRule[] = [
             {
                 id: "r-bad",
@@ -145,7 +145,7 @@ describe("rule engine (v1)", () => {
             },
         ];
 
-        const results = evaluateRules(rules, {
+        const results = await evaluateRules(rules, {
             language: "javascript",
             sourceText: "const x = 1;",
         });
@@ -338,12 +338,12 @@ describe("rule engine (v1)", () => {
         },
     ];
 
-    it.each(cases)("matrix: $name", ({ rule, ctx, expectedPassed }) => {
-        const [result] = evaluateRules([rule], ctx);
+    it.each(cases)("matrix: $name", async ({ rule, ctx, expectedPassed }) => {
+        const [result] = await evaluateRules([rule], ctx);
         expect(result?.passed).toBe(expectedPassed);
     });
 
-    it("nested composite works (AND containing OR)", () => {
+    it("nested composite works (AND containing OR)", async () => {
         const rule: SpecialRule = {
             id: "nested",
             type: "composite",
@@ -388,13 +388,13 @@ describe("rule engine (v1)", () => {
             },
         };
 
-        const [resultPass] = evaluateRules([rule], {
+        const [resultPass] = await evaluateRules([rule], {
             language: "javascript",
             sourceText: "const s = 'aaa ccc';",
         });
         expect(resultPass?.passed).toBe(true);
 
-        const [resultFail] = evaluateRules([rule], {
+        const [resultFail] = await evaluateRules([rule], {
             language: "javascript",
             sourceText: "const s = 'aaa ddd';",
         });

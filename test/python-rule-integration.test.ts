@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { evaluateRules, evaluateRulesAsync, type SpecialRule } from "../src/index.js";
+import { evaluateRule, evaluateRules, type SpecialRule } from "../src/index.js";
 import { makePythonRule } from "./helpers/python-feature.js";
 
 describe("Python AST rule integration", () => {
     it("supports MUST_NOT_HAVE and fails closed on invalid rules", async () => {
         const present = makePythonRule(["FOR"], "MUST_NOT_HAVE");
         const invalid = { ...present, params: { features: ["NOT_A_FEATURE"] } } as unknown as SpecialRule;
-        const [presentResult, invalidRuleResult] = await evaluateRulesAsync(
+        const [presentResult, invalidRuleResult] = await evaluateRules(
             [present, invalid],
             { language: "python", sourceText: "for item in items:\n    pass" },
         );
         expect(presentResult?.passed).toBe(false);
-        const [noForResult] = await evaluateRulesAsync([makePythonRule(["FOR"], "MUST_NOT_HAVE")], {
+        const [noForResult] = await evaluateRules([makePythonRule(["FOR"], "MUST_NOT_HAVE")], {
             language: "python",
             sourceText: "print('no loop')",
         });
@@ -42,7 +42,7 @@ describe("Python AST rule integration", () => {
                 ],
             },
         };
-        const [result] = await evaluateRulesAsync([rule], {
+        const [result] = await evaluateRules([rule], {
             language: "Python",
             sourceText: "for item in items:\n    result = sorted(items)",
         });
@@ -50,7 +50,7 @@ describe("Python AST rule integration", () => {
     });
 
     it("rejects Python AST rules for non-Python source", async () => {
-        const [result] = await evaluateRulesAsync([makePythonRule(["FOR"])], {
+        const [result] = await evaluateRules([makePythonRule(["FOR"])], {
             language: "javascript",
             sourceText: "for (;;) {}",
         });
@@ -58,16 +58,15 @@ describe("Python AST rule integration", () => {
         expect(result?.reason).toMatch(/Python/i);
     });
 
-    it("keeps asynchronous Python evaluation out of the synchronous API", () => {
-        const [result] = evaluateRules([makePythonRule(["FOR"], "MUST_NOT_HAVE")], {
+    it("evaluates an individual rule through the same async rule pipeline", async () => {
+        const result = await evaluateRule(makePythonRule(["FOR"]), {
             language: "Python",
             sourceText: "for item in items:\n    pass",
         });
-        expect(result?.passed).toBe(false);
-        expect(result?.reason).toMatch(/unknown rule type/i);
+        expect(result.passed).toBe(true);
     });
 
-    it("does not invert invalid legacy matcher errors under MUST_NOT_HAVE", () => {
+    it("does not invert invalid legacy matcher errors under MUST_NOT_HAVE", async () => {
         const invalidRegex: SpecialRule = {
             id: "invalid-regex",
             type: "regex",
@@ -75,13 +74,13 @@ describe("Python AST rule integration", () => {
             message: "Invalid rule must not pass",
             params: { pattern: "[" },
         };
-        const [result] = evaluateRules([invalidRegex], { language: "python", sourceText: "pass" });
+        const [result] = await evaluateRules([invalidRegex], { language: "python", sourceText: "pass" });
         expect(result?.passed).toBe(false);
         expect(result?.reason).toMatch(/invalid regex/i);
     });
 
     it("reports a syntax error reason and never passes malformed Python", async () => {
-        const [result] = await evaluateRulesAsync([makePythonRule(["FOR"])], {
+        const [result] = await evaluateRules([makePythonRule(["FOR"])], {
             language: "python",
             sourceText: "def broken(:\n    pass",
         });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     defaultRuleHandlerRegistry,
-    evaluateRulesAsync,
+    evaluateRules,
     type AsyncRuleHandler,
     type SpecialRule,
 } from "../src/index.js";
@@ -59,7 +59,7 @@ describe("extensible async rule handlers", () => {
         }];
 
         const registry = defaultRuleHandlerRegistry.with(fixtureHandler);
-        const [result] = await evaluateRulesAsync(rules, {
+        const [result] = await evaluateRules(rules, {
             language: "Python",
             sourceText: "lambda value: value\nALPHA and beta",
         }, { ruleHandlers: registry });
@@ -84,7 +84,7 @@ describe("extensible async rule handlers", () => {
             message: "",
             params: {},
         };
-        const [result] = await evaluateRulesAsync([rule], {
+        const [result] = await evaluateRules([rule], {
             language: "fixture",
             sourceText: "anything",
         }, { ruleHandlers: defaultRuleHandlerRegistry.with(handler) });
